@@ -19,6 +19,12 @@ module "google_artifact_registry" {
   format = var.format
 }
 
+module "google_storage_bucket" {
+  source = "./modules/google_storage_bucket"
+  bucket_name = var.bucket_name
+  bucket_location = var.bucket_location
+}
+
 module "google_sql_database_instance" {
   source         = "./modules/google_sql_database_instance"
   instance_name  = var.instance_name
