@@ -20,16 +20,15 @@ module "google_artifact_registry" {
 }
 
 module "google_sql_database_instance" {
-  source = "./modules/google_sql_database_instance"
-    instance_name = var.instance_name
-    database_version = var.instance_version
-    region = var.instance_region
-    tier = var.instance_tier
-
+  source         = "./modules/google_sql_database_instance"
+  instance_name  = var.instance_name
+  instance_version = var.instance_version
+  instance_region  = var.instance_region
+  instance_tier    = var.instance_tier
 }
 
 module "google_sql_database" {
-    source = "./modules/google_sql_database"
-    db_name = var.db_name
-    instance = var.db_instance
+  source      = "./modules/google_sql_database"
+  db_name     = var.db_name
+  db_instance = var.db_instance
 }

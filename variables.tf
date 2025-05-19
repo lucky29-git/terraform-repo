@@ -55,3 +55,8 @@ variable "db_name" {
 variable "instance" {
   type = string
 }
+
+variable "db_instance" {
+  type = string
+  description = "The name of the Cloud SQL instance to use for the database."
+}
