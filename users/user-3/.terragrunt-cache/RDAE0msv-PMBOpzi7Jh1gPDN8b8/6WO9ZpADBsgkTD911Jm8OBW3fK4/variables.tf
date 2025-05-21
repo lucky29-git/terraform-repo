@@ -14,15 +14,6 @@ variable "instance_tier" {
   default = "db-f1-micro"
 }
 
-variable "project" {
-  type = string
-  default = "terra-460008"
-}
-variable "region" {
-  type = string
-  default = "us-central1"
-}
-variable "zone" {
-  type = string
-  default = "us-central1-c"
-}
+variable "project" { type = string }
+variable "region"  { type = string }
+variable "zone"    { type = string }
