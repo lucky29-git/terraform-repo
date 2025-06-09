@@ -1,3 +1,3 @@
-output "instance_name" {
-  value = google_sql_database_instance.mypostgresinstance.name
+output "instance_names" {
+  value = { for k, inst in google_sql_database_instance.mypostgresinstance : k => inst.name }
 }

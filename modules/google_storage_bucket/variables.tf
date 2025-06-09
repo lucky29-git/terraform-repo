@@ -1,16 +1,21 @@
-variable "bucket_name" {
-  type = string
-  description = "Name of the bucket"
+variable "buckets" {
+  description = "A list of buckets to create"
+  type = list(object({
+    bucket_name = string
+    bucket_location = optional(string)
+    storage_class = optional(string)
+    force_destroy = optional(bool)
+    labels = optional(map(string))
+    public_access_prevention = optional(string)
+    make_public = optional(bool)
+    website_main_page_suffix = optional(string)
+    website_not_found_page = optional(string)
+  }))
 }
 
-variable "bucket_location" {
-  description = "Location of the GCS bucket"
-  type        = string
-  default     = "US"
-}
 variable "project" {
   type = string
-  default = "terra-460008"
+  default = "nemesh-playground"
 }
 variable "region" {
   type = string

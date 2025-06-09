@@ -1,4 +1,4 @@
-output "bucket_name" {
-  description = "The name of the created GCS bucket"
-  value       = google_storage_bucket.mybucket.name
+output "bucket_names" {
+  description = "The names of the created GCS buckets"
+  value       = { for k, b in google_storage_bucket.mybucket : k => b.name }
 }

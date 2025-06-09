@@ -1,22 +1,16 @@
-variable "instance_name" {
-  type = string
-}
-
-variable "instance_version" {
-  default = "POSTGRES_15"
-}
-
-variable "instance_region" {
-  default = "us-central1"
-}
-
-variable "instance_tier" {
-  default = "db-f1-micro"
+variable "database_instance" {
+  description = "List of database instances to create."
+  type = list(object({
+    name             = string
+    instance_version = optional(string, "POSTGRES_15")
+    region           = optional(string, "us-central1")
+    tier             = optional(string, "db-f1-micro")
+  }))
 }
 
 variable "project" {
   type = string
-  default = "terra-460008"
+  default = "nemesh-playground"
 }
 variable "region" {
   type = string

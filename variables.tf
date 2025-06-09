@@ -1,13 +1,16 @@
 variable "project" {
-  default = "terra-460008"
+  type = string
+  description = "GCP project ID"
 }
 
 variable "region" {
-  default = "us-central1"
+  type = string
+  description = "GCP region"
 }
 
 variable "zone" {
-  default = "us-central1-c"
+  type = string
+  description = "GCP zone"
 }
 
 variable "repository_id" {
@@ -21,6 +24,14 @@ variable "format" {
   default     = "DOCKER"
 }
 
+variable "buckets" {
+  type = list(object({
+    bucket_name = string
+    bucket_location = string
+    labels = map(string)
+  }))
+}
+
 variable "bucket_name" {
   type = string
   description = "Name of the bucket"
@@ -32,31 +43,23 @@ variable "bucket_location" {
   default     = "US"
 }
 
-variable "instance_name" {
-  type = string
-}
-
-variable "instance_version" {
-  default = "POSTGRES_15"
-}
-
-variable "instance_region" {
-  default = "us-central1"
-}
-
-variable "instance_tier" {
-  default = "db-f1-micro"
-}
-
-variable "db_name" {
-  type = string
-}
-
-variable "instance" {
-  type = string
-}
-
 variable "db_instance" {
-  type = string
-  description = "The name of the Cloud SQL instance to use for the database."
+  description = "List of database instances to create."
+  type = list(object({
+    name             = string
+    instance_version = string  # optional
+    region           = string  # optional
+    tier             = string  # optional
+  }))
+}
+
+variable "database" {
+  description = "List of databases to create."
+  type = list(object({
+    name          = string
+    instance_name = string
+    charset       = string  # optional
+    collation     = string  # optional
+  }))
+  
 }

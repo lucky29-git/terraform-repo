@@ -18,14 +18,8 @@ inputs = {
     project = "nemesh-playground"
     buckets=[
         {
-            bucket_name="user5-bucketttttt1tt",
+            bucket_name="user5-testingbuckhaha",
             bucket_location="us-central1",
-        },
-        {
-            bucket_name="user5-bucketttttt2",
-            labels= {
-                team="devopssssssss"
-            }
         }
     ]
 }

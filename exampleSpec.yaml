@@ -1,0 +1,183 @@
+
+
+resources 
+  storage_bucket: 
+    - name: "example-bucket"       (required, cannot change)
+      location: "us-central1"      (cannot change, default: us-central1)
+      versioning_enabled: true      (default: false)
+      labels:                        (can change)
+        project: "hello-project"
+
+
+resources:
+  # General Purpose Storage Bucket
+  storage_bucket:
+    - name: "project-alpha-general-artifacts"
+      location: "europe-west1"
+      storage_class: "STANDARD"
+      versioning_enabled: true
+      labels:
+        project: "alpha"
+        env: "shared"
+
+  # Relational Database Instance
+  database_instance:
+    - name: "user-service-main-db-instance"
+      engine: "POSTGRES"
+      engine_version: "15"
+      tier: "db-g1-small" # GCP example
+      # instance_class: "db.t3.small" # AWS example
+      region: "us-central1"
+      storage_gb: 50
+      root_password_secret_name: "user-db-instance-root-pass"
+      deletion_protection: true
+      labels:
+        service: "user-auth"
+        tier: "backend"
+
+  # Logical Database within an Instance
+  database_logical: # Corresponds to your 'db' example
+    - name: "user_auth_primary_db" # This is like your 'db_name'
+      instance_name: "user-service-main-db-instance" # Links to a database_instance
+      charset: "UTF8"
+      collation: "en_US.UTF8"
+    - name: "audit_logs_db"
+      instance_name: "user-service-main-db-instance"
+      charset: "UTF8"
+
+  # Compute Instance / Virtual Machine
+  compute_instance:
+    - name: "app-server-prod-01"
+      zone: "us-east1-b"
+      machine_type: "e2-standard-2" # GCP example
+      # instance_type: "m5.large" # AWS example
+      image_project: "ubuntu-os-cloud" # GCP
+      image_family: "ubuntu-2204-lts" # GCP
+      # image_id: "ami-xxxxxxxxxxxxxxxxx" # AWS
+      boot_disk_size_gb: 100
+      service_account_email: "app-runner-sa@your-project.iam.gserviceaccount.com" # GCP
+      # iam_instance_profile_name: "AppServerEC2Role" # AWS
+      startup_script: |
+        #!/bin/bash
+        apt-get update
+        apt-get install -y my-app-dependencies
+      firewall_rules_allow:
+        - protocol: "tcp"
+          ports: ["8080"]
+      labels:
+        app: "my-main-app"
+        env: "production"
+
+  # HTTP(S) Load Balancer
+  http_load_balancer:
+    - name: "external-app-lb"
+      region: "us-central1" # For regional LBs, or 'global' implied for some GCP LBs
+      description: "Main application external load balancer"
+      default_backend_service:
+        group_type: "INSTANCE_GROUP" # Or "TARGET_GROUP" (AWS), "NETWORK_ENDPOINT_GROUP" (GCP Serverless)
+        instances: # List of compute_instance names or group names
+          - "app-server-prod-01"
+          # - "app-server-prod-02"
+        port: 8080
+        protocol: "HTTP"
+        health_check:
+          type: "HTTP"
+          port: 8080
+          request_path: "/health"
+      custom_domain_names: ["api.example.com"] # Will require SSL cert & DNS
+      ssl_certificate_id: "api-example-com-ssl-cert" # Refers to a certificate resource
+      labels:
+        env: "production"
+        traffic: "external"
+
+  # Serverless Function
+  serverless_function:
+    - name: "order-processor-func"
+      region: "europe-west2"
+      runtime: "python311"
+      entry_point: "handle_order"
+      source_code_path: "./functions/order_processor/"
+      trigger_type: "PUBSUB"
+      trigger_topic_name: "new-orders-topic"
+      memory_mb: 512
+      timeout_sec: 120
+      environment_variables:
+        DATABASE_URL_SECRET: "order-db-connection-string"
+      labels:
+        process: "orders"
+
+  # Kubernetes Namespace
+  kubernetes_namespace:
+    - name: "frontend-dev-team"
+      cluster_name: "primary-prod-cluster" # IDP needs to know the target cluster
+      labels:
+        team: "frontend"
+        environment: "development"
+      resource_quotas:
+        - name: "default-team-quota"
+          hard:
+            pods: "100"
+            cpu: "20"
+            memory: "50Gi"
+
+  # Static Site Hosting Bundle
+  static_site_hosting:
+    - name: "main-company-website" # Unique identifier for this entire static site setup
+      primary_domain: "www.mycompany.com"
+      alternative_names: ["mycompany.com"] # For certificate and DNS aliases
+
+      # Configurations for the content storage bucket
+      content_bucket:
+        # name_suffix: "web-content" # Your IDP could generate full name: main-company-website-web-content
+        location: "us-east1"
+        index_document_suffix: "index.html"
+        error_document_path: "error.html"
+        public_read_access: false # Recommended if CDN uses OAI/OAC
+        versioning_enabled: true
+        force_destroy: false # For dev, can be true
+        labels:
+          site: "main-company-website"
+          purpose: "static-content-origin"
+      # Configurations for the CDN
+      cdn_config:
+        enabled: true
+        default_root_object: "index.html"
+        compress_content: true
+        # price_class: "PriceClass_100" # AWS example
+        minimum_protocol_version: "TLSv1.2_2021"
+        # web_acl_id: "my-company-waf-acl" # Optional WAF
+        forward_query_strings: false
+        default_ttl_seconds: 3600 # 1 hour
+        custom_error_responses:
+          - error_code: 404
+            response_page_path: "/error.html"
+            response_code: 404
+            cache_min_ttl_seconds: 300
+          - error_code: 403
+            response_page_path: "/error.html"
+            response_code: 403
+            cache_min_ttl_seconds: 300
+
+      # Configurations for DNS records (IDP would create records for primary_domain and alternative_names)
+      dns_config:
+        hosted_zone_name: "mycompany.com." # The parent DNS zone
+        # ttl_seconds: 300 # TTL for the created records
+
+      # Configurations for the SSL/TLS Certificate
+      ssl_certificate_config:
+        validation_method: "DNS" # IDP might automate DNS validation
+        # certificate_authority_arn: "" # For private CAs if needed
+
+    - name: "blog-subdomain"
+      primary_domain: "blog.mycompany.com"
+      content_bucket:
+        location: "europe-west1"
+        index_document_suffix: "index.html"
+        error_document_path: "404.html"
+      cdn_config:
+        enabled: true
+        default_root_object: "index.html"
+      dns_config:
+        hosted_zone_name: "mycompany.com."
+      ssl_certificate_config:
+        validation_method: "DNS"

@@ -21,21 +21,18 @@ module "google_artifact_registry" {
 
 module "google_storage_bucket" {
   source = "./modules/google_storage_bucket"
-  bucket_name = var.bucket_name
-  bucket_location = var.bucket_location
+  project = var.project
+  buckets = var.buckets
 }
 
-module "google_sql_database_instance" {
+module "database_instance" {
   source         = "./modules/google_sql_database_instance"
-  instance_name  = var.instance_name
-  instance_version = var.instance_version
-  instance_region  = var.instance_region
-  instance_tier    = var.instance_tier
+  database_instance = var.db_instance
 }
 
-module "google_sql_database" {
-  source      = "./modules/google_sql_database"
-  db_name     = var.db_name
-  db_instance = var.db_instance
+module "database" {
+  source   = "./modules/google_sql_database"
+  database = var.database
+  # instance_depends_on = module.database_instance
 }
 
